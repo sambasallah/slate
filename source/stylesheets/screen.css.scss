@@ -26,6 +26,8 @@ under the License.
 
 html, body {
   color: $main-text;
+  font-family: Palatino;
+  font-size: 16px;
   padding: 0;
   margin: 0;
   -webkit-font-smoothing: antialiased;
@@ -468,6 +470,8 @@ html, body {
     margin-bottom: 1.5em;
     background: $aside-notice-bg;
     line-height: 1.6;
+    font-family: Courier New;
+    font-weight: bold;
 
     &.warning {
       background-color: $aside-warning-bg;

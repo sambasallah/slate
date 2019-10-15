@@ -3,237 +3,213 @@ title: API Reference
 
 language_tabs: # must be one of https://git.io/vQNgJ
   - shell
-  - ruby
-  - python
-  - javascript
-
-toc_footers:
-  - <a href='#'>Sign Up for a Developer Key</a>
-  - <a href='https://github.com/lord/slate'>Documentation Powered by Slate</a>
-
-includes:
-  - errors
 
 search: true
 ---
 
-# Introduction
+# Register
 
-Welcome to the Kittn API! You can use our API to access Kittn API endpoints, which can get information on various cats, kittens, and breeds in our database.
+This endpoint registers a new user and returns an API key.
 
-We have language bindings in Shell, Ruby, Python, and JavaScript! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.
+> Request
 
-This example API documentation page was created with [Slate](https://github.com/lord/slate). Feel free to edit it and use it as a base for your own API's documentation.
+```shell
+curl -X POST "https://seifchain.seif.io/users"
+  -H "Content-Type: application/json"
+  -d {"username": "testUser", "orgname": "mainnet"}
+```
+
+Only "username" field can be changed. "orgname" field can also be changed if the API is being called from and to own blockchain node.
+
+It registers all users in msp and save the keys in server. When the user uses the token, in the backend the key is loaded and transactions are made
+
+> Response
+
+```json
+{
+    "success": true,
+    "apiKey": "blahCvHLblahrB",
+    "message": "testUser enrolled Successfully"
+}
+```
+
+
+### HTTP Request
+
+`POST https://seifchain.seif.io/users`
+
+### Body Parameters
+
+Parameter |  Description
+--------- | -----------
+username | The username.
+orgname | The organization name.
+
+<aside class="success">
+  Save the APIKEY - It cannot be requested again through API - unless contact us
+</aside>
 
 # Authentication
 
-> To authorize, use this code:
+This endpoint gets the access token.
 
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-```
+> Request
 
 ```shell
-# With shell, you can just pass the correct header with each request
-curl "api_endpoint_here"
-  -H "Authorization: meowmeowmeow"
+curl -X POST "https://seifchain.seif.io/getToken"
+  -H "Content-Type: application/json"
+  -d {"username": "testUser", "apiKey": "HlWKyuLDQcRu"}
 ```
 
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-```
-
-> Make sure to replace `meowmeowmeow` with your API key.
-
-Kittn uses API keys to allow access to the API. You can register a new Kittn API key at our [developer portal](http://example.com/developers).
-
-Kittn expects for the API key to be included in all API requests to the server in a header that looks like the following:
-
-`Authorization: meowmeowmeow`
-
-<aside class="notice">
-You must replace <code>meowmeowmeow</code> with your personal API key.
-</aside>
-
-# Kittens
-
-## Get All Kittens
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get()
-```
-
-```shell
-curl "http://example.com/api/kittens"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let kittens = api.kittens.get();
-```
-
-> The above command returns JSON structured like this:
+> Response
 
 ```json
-[
-  {
-    "id": 1,
-    "name": "Fluffums",
-    "breed": "calico",
-    "fluffiness": 6,
-    "cuteness": 7
-  },
-  {
-    "id": 2,
-    "name": "Max",
-    "breed": "unknown",
-    "fluffiness": 5,
-    "cuteness": 10
-  }
-]
+{
+    "success": true,
+    "message": "Authorization successful",
+    "token": "eyJhbGciOiJIUzI1Ni..."
+}
 ```
-
-This endpoint retrieves all kittens.
 
 ### HTTP Request
 
-`GET http://example.com/api/kittens`
+`POST https://seifchain.seif.io/getToken`
+
+### Body Parameters
+
+Parameter |  Description
+--------- | -----------
+username | The username.
+apiKey | The API key geneated during registration.
+
+# Insert User Data
+
+This endpoint inserts user data.
+
+> Request
+
+```shell
+curl -X "POST https://seifchain.seif.io/channels/common/chaincodes/reference"
+  -H "Content-Type: application/json"
+  -H "Authorization: Bearer TOKEN"
+  -d {"peers": ["mainnet/peer0"], "fcn": "addAPIUser", "args": ["John","Doe","Male","Doctor","0178787878","user@gmail.com","CURP-123123123123","Ine-23423423423","UniqueID0001"]}
+```
+
+
+> Response
+
+```json
+{
+    "transaction": "520e09ee53e08e4da4cf400e35797faf3c6970984b6ae1fafe046181e34fdc9e"
+}
+```
+
+> Error
+
+```json
+{
+    "ok": false,
+    "message": "[ERROR] user already exists, cannot create two accounts with same ID <UniqueID0001>"
+}
+```
+
+### HTTP Request
+
+`POST https://seifchain.seif.io/channels/common/chaincodes/reference`
+
+### Body Parameters
+
+Parameter |  Description
+--------- | -----------
+peers | The organization name/peer id .
+fcn | The function to call. This "addAPIUser" is being called. The fucntion name is self explainatory.
+args | The actual data as an array containing 9 values of type - string.
+
+The values of `args` should be inserted in the following order:
+
+1. First Name
+2. Last Name
+3. Gender
+4. Occupation
+5. Phone/Mobile number
+6. Email
+7. CURP number
+8. Ine number
+9. Unique ID of the user to save, update data and lets query the history of user data
+
+<aside class="info">
+  All fields are required
+</aside>
+
+Transaction ID is returned and User's Global Blockchain ID and Organization Name are automatically populated
+
+
+<aside class="warning">
+  Retruns error if user is created with the Unique ID already
+</aside>
+
+
+# Query User History
+
+This endpoint returns the full history of the user data manipulation
+
+> Request
+
+```shell
+curl -X GET "https://seifchain.seif.io/channels/common/chaincodes/reference/?peer=mainnet/peer0&fcn=getPreviousValue&args=['UniqueID0001']"
+  -H "Content-Type: application/json"
+  -H "Authorization: Bearer TOKEN"
+```
+
+
+> Response
+
+```json
+{
+    "result": [
+        {
+            "TxId": "520e09ee53e08e4da4cf400e35797faf3c6970984b6ae1fafe046181e34fdc9e",
+            "Value": {
+                "id": "testerID0001",
+                "firstname": "Tester",
+                "lastname": "User",
+                "gender": "Male",
+                "occupation": "Doctor",
+                "phone": "0178787878",
+                "email": "user@gmail.com",
+                "curp": "CURP-123123123123",
+                "ine": "Ine-23423423423",
+                "blockchainid": "eDUwOTo6Q049a2VuZGksT1U9Y2xpZW50K09VPW1haW5uZXQrT1U9bWFpbm5ldDo6Q049Y2EubWFpbm5ldC5zZWlmLmlvLE89bWFpbm5ldC5zZWlmLmlvLEw9U2FuIEZyYW5jaXNjbyxTVD1DYWxpZm9ybmlhLEM9VVM=",
+                "mspid": "mainnetMSP"
+            },
+            "Timestamp": "2019-10-15 20:00:01.14 +0000 UTC",
+            "IsDelete": "false"
+        }
+    ]
+}
+```
+
+> Error
+
+```json
+{
+    "ok": false,
+    "message": "[ERROR] Unauthorized Attempt."
+}
+```
+
+
+### HTTP Request
+
+`https://seifchain.seif.io/channels/common/chaincodes/reference/?peer=mainnet/peer0&fcn=getPreviousValue&args=['UniqueID0001']"`
 
 ### Query Parameters
 
-Parameter | Default | Description
---------- | ------- | -----------
-include_cats | false | If set to true, the result will also include cats.
-available | true | If set to false, the result will include kittens that have already been adopted.
-
-<aside class="success">
-Remember — a happy kitten is an authenticated kitten!
-</aside>
-
-## Get a Specific Kitten
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get(2)
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get(2)
-```
-
-```shell
-curl "http://example.com/api/kittens/2"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.get(2);
-```
-
-> The above command returns JSON structured like this:
-
-```json
-{
-  "id": 2,
-  "name": "Max",
-  "breed": "unknown",
-  "fluffiness": 5,
-  "cuteness": 10
-}
-```
-
-This endpoint retrieves a specific kitten.
-
-<aside class="warning">Inside HTML code blocks like this one, you can't use Markdown, so use <code>&lt;code&gt;</code> blocks to denote code.</aside>
-
-### HTTP Request
-
-`GET http://example.com/kittens/<ID>`
-
-### URL Parameters
-
 Parameter | Description
 --------- | -----------
-ID | The ID of the kitten to retrieve
+peer | The organization name/peer id.
+fcn | The function to call. This time "getPreviousValue" is being called. The fucntion returns the full history of the user data manipulation.
+args | The actual data as an array containing 1 value of type - string. The value is the Unique ID that was used to save or update data.
 
-## Delete a Specific Kitten
 
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.delete(2)
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.delete(2)
-```
-
-```shell
-curl "http://example.com/api/kittens/2"
-  -X DELETE
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.delete(2);
-```
-
-> The above command returns JSON structured like this:
-
-```json
-{
-  "id": 2,
-  "deleted" : ":("
-}
-```
-
-This endpoint deletes a specific kitten.
-
-### HTTP Request
-
-`DELETE http://example.com/kittens/<ID>`
-
-### URL Parameters
-
-Parameter | Description
---------- | -----------
-ID | The ID of the kitten to delete
-
+<aside class="warning">Retruns error if the unique ID is not same as the creator user. Different token for the same user works fine.</aside>
